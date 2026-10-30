@@ -1,0 +1,32 @@
+# /etc/systemd/system/rhythm-mcp@.service
+# Stateless MCP gateway — proxying to the API. Scale with instances:
+#   systemctl enable --now rhythm-mcp@8090 rhythm-mcp@8091 rhythm-mcp@8092
+# Each instance binds 127.0.0.1:<port>. Put them behind nginx (deploy/nginx-rhythm.conf).
+[Unit]
+Description=Rhythm MCP gateway on port %i
+After=network-online.target rhythm-api.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=rhythm
+Group=rhythm
+EnvironmentFile=/etc/rhythm/rhythm.env
+Environment=RHYTHM_API_URL=http://127.0.0.1:8099
+WorkingDirectory=/opt/rhythm
+ExecStart=/opt/rhythm/.venv/bin/python -m rhythm_mcp \
+    --transport http --host 127.0.0.1 --port %i
+Restart=on-failure
+RestartSec=3
+
+# Hardening — stateless, so stricter than the API
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=
+CapabilityBoundingSet=
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

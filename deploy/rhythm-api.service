@@ -1,0 +1,35 @@
+# /etc/systemd/system/rhythm-api.service
+# The single stateful writer. See docs/deploy/production.md for the full setup.
+[Unit]
+Description=Rhythm API (stateful core)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=rhythm
+Group=rhythm
+EnvironmentFile=/etc/rhythm/rhythm.env
+WorkingDirectory=/opt/rhythm
+ExecStart=/opt/rhythm/.venv/bin/uvicorn rhythm.api:app \
+    --host 127.0.0.1 --port 8099 \
+    --proxy-headers --forwarded-allow-ips=127.0.0.1 \
+    --no-access-log
+# One process, one writer: the file-backed store is single-writer by design
+# (docs/deploy/production.md). Scale the stateless MCP gateways instead.
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/rhythm
+CapabilityBoundingSet=
+MemoryMax=512M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

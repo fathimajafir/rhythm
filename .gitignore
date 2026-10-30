@@ -1,0 +1,32 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local runtime data (the durable store lives outside the repo)
+*.store.json
+store.json
+*.corrupt
+/data/
+
+# Secrets and local env — never commit
+.env
+.env.*
+!.env.example
+deploy/rhythm.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
